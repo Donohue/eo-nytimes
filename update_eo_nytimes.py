@@ -28,13 +28,21 @@ def convert_nytimes_image():
     print('Completed conversion')
     return data
 
-def save_to_bucket(bucket, data, date, region='us-west-2'):
+def _key_for_date(date):
+    return date.strftime('%Y/%m/%d/scan.jpg')
+
+def image_already_exists(bucket, date):
+    return bucket.get_key(_key_for_date(date)) != None
+
+def image_url(bucket, date, region='us-west-2'):
+    return 'https://%s.s3-%s.amazonaws.com/%s' % (bucket.name, region, _key_for_date(date))
+
+def save_to_bucket(bucket, date, region='us-west-2'):
     print('Uploading to S3')
     key = Key(bucket)
-    key.key = date.strftime('%Y/%m/%d/scan.jpg')
+    key.key = _key_for_date(date)
     key.set_contents_from_filename('/tmp/scan.jpg')
     print('Completed upload to S3')
-    return 'https://%s.s3-%s.amazonaws.com/%s' % (bucket.name, region, key.key)
 
 if __name__ == '__main__':  
     parser = argparse.ArgumentParser()
@@ -57,9 +65,13 @@ if __name__ == '__main__':
     bucket = conn.get_bucket(args.bucket)
     eo = ElectricObjects(args.user, args.password)
     
-    download_nytimes_frontpage(args.date)
-    data = convert_nytimes_image()
-    url = save_to_bucket(bucket, data, args.date, region=args.region)
+    url = image_url(bucket, args.date, region=args.region)
+    if not image_already_exists(bucket, args.date):
+        download_nytimes_frontpage(args.date)
+        convert_nytimes_image()
+        save_to_bucket(bucket, args.date, region=args.region)
+    else:
+        print('Image already exists in S3 for %s' % args.date.strftime('%Y-%m-%d'))
 
     print('Updating EO URL to %s' % url)
     eo.set_url(url, args.device)
