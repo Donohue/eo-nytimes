@@ -1,0 +1,9 @@
+backports.functools-lru-cache==1.6.1
+beautifulsoup4==4.9.0
+boto==2.49.0
+certifi==2020.4.5.1
+chardet==3.0.4
+idna==2.9
+requests==2.23.0
+soupsieve==1.9.5
+urllib3==1.25.9
