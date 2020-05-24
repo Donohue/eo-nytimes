@@ -23,7 +23,7 @@ def download_nytimes_frontpage(date):
 
 def convert_nytimes_image():
     print('Converting NYTimes frontpage to JPEG')
-    args = ['convert', '-resize', '1260x', '/tmp/scan.pdf', '/tmp/scan.jpg']
+    args = ['convert', '-resize', '1260x', '-alpha', 'remove', '/tmp/scan.pdf', '/tmp/scan.jpg']
     data = subprocess.check_output(args)
     print('Completed conversion')
     return data
